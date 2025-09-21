@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Postpartum Core & Strength Plan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Chosen Palette: Calming Peach and Sage -->
+    <!-- Application Structure Plan: The application uses a tab-based navigation system to separate the key areas: a 'Welcome' section with critical safety information, the interactive 'Workout Plan', a 'Nutrition Guide', and a 'Progress Tracker'. This structure was chosen to prevent overwhelming the user with a long scrollable page. It allows for focused engagement with each part of the plan—workouts, diet, and progress—by breaking the information into logical, manageable sections. The user flow is guided by the tabs, with the core interaction being the selection of weeks and days within the workout plan to reveal specific exercises, and logging completions on the tracker chart. -->
+    <!-- Visualization & Content Choices: The main visualization is a Chart.js bar chart for the 'Progress Tracker'. Goal: Motivate the user by visualizing their journey. Presentation: A bar chart showing planned cardio minutes for each of the 14 days. Interaction: Users can click 'Log Day' buttons, which dynamically changes the color of the corresponding bar on the chart, providing a sense of accomplishment. This method was chosen over a static list because it's more engaging. The workout plan itself is presented as an interactive list, using JS to show/hide daily content, which is a better organizational tool than a long, static document. Nutrition info is organized in a clean two-column layout for readability. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .tab-active {
+            border-bottom-color: #f59e0b; 
+            color: #f59e0b;
+        }
+        .day-button-active {
+            background-color: #fbbf24;
+            color: #422006;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 40vh;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+    </style>
+     <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-amber-50 text-stone-800">
+
+    <div class="container mx-auto p-4 md:p-8 max-w-7xl">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-bold text-amber-800">Postpartum Recovery Journey</h1>
+            <p class="text-lg text-stone-600 mt-2">A two-week guide to gently rebuilding core and strength.</p>
+        </header>
+
+        <nav class="flex justify-center border-b-2 border-amber-200 mb-8">
+            <button data-tab="welcome" class="nav-tab text-lg font-medium p-4 border-b-4 border-transparent hover:text-amber-600 transition-colors">Welcome</button>
+            <button data-tab="plan" class="nav-tab text-lg font-medium p-4 border-b-4 border-transparent hover:text-amber-600 transition-colors">Workout Plan</button>
+            <button data-tab="nutrition" class="nav-tab text-lg font-medium p-4 border-b-4 border-transparent hover:text-amber-600 transition-colors">Nutrition Guide</button>
+            <button data-tab="tracker" class="nav-tab text-lg font-medium p-4 border-b-4 border-transparent hover:text-amber-600 transition-colors">Progress Tracker</button>
+        </nav>
+
+        <main id="main-content">
+            <section id="welcome" class="tab-content">
+                <div class="bg-white rounded-xl shadow-md p-6 md:p-8">
+                    <h2 class="text-2xl font-bold text-amber-700 mb-4">Welcome to Your Recovery Journey</h2>
+                     <p class="text-stone-600 mb-6">This application provides a structured, gentle plan to help you reconnect with your core and rebuild strength after childbirth. The program is divided into two weeks, starting with foundational movements and gradually increasing in stability challenges. Navigate using the tabs above to explore the workout plan, find nutrition tips, and track your progress. Remember to be patient and kind to yourself throughout this process.</p>
+                    <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg" role="alert">
+                        <h3 class="font-bold text-xl">IMPORTANT: Please Read Before Starting</h3>
+                        <ul class="list-disc list-inside mt-2 space-y-2">
+                            <li><strong>Consult a Professional:</strong> This is a general guide. It is crucial to consult with your doctor or a physical therapist before starting. They can assess your needs and check for conditions like diastasis recti.</li>
+                            <li><strong>Listen to Your Body:</strong> If any exercise causes pain, discomfort, or "coning" in your abdominal area, stop immediately. Rest is a key part of recovery.</li>
+                            <li><strong>Breathe Correctly:</strong> Focus on your breath. Exhale on exertion (the hardest part of the movement) to protect your core and pelvic floor.</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <section id="plan" class="tab-content hidden">
+                 <div class="bg-white rounded-xl shadow-md p-6 md:p-8">
+                    <h2 class="text-2xl font-bold text-amber-700 mb-4 text-center">Your Two-Week Workout Plan</h2>
+                    <div class="flex justify-center gap-4 mb-6">
+                        <button id="week1-btn" class="week-btn px-6 py-2 rounded-full font-semibold text-white bg-amber-500 shadow-sm">Week 1</button>
+                        <button id="week2-btn" class="week-btn px-6 py-2 rounded-full font-semibold text-stone-600 bg-amber-100">Week 2</button>
+                    </div>
+                    <div id="daily-buttons" class="flex flex-wrap justify-center gap-2 mb-8"></div>
+                    <div id="workout-details" class="mt-4"></div>
+                    
+                     <div class="mt-8 pt-8 border-t border-amber-200">
+                        <h3 class="text-xl font-bold text-amber-700 mb-4">Workout Terminology</h3>
+                        <ul class="list-disc list-inside text-stone-600 space-y-2">
+                            <li>A **rep** is short for repetition, which is one complete execution of an exercise.</li>
+                            <li>A **round** means you complete the entire list of exercises in a circuit one time.</li>
+                        </ul>
+                    </div>
+                    
+                     <div class="mt-8 pt-8 border-t border-amber-200">
+                        <h3 class="text-xl font-bold text-amber-700 mb-4">Essential Workout Tips</h3>
+                        <ul class="list-disc list-inside space-y-2 text-stone-600">
+                            <li><strong>Breathing:</strong> Use diaphragmatic breathing. Place one hand on your chest and one on your belly. When you inhale through your nose, only your belly should rise, not your chest. When you exhale, your belly should gently fall. This activates your deep core muscles.</li>
+                            <li><strong>Focus on Form:</strong> Move slowly and with intention. Think about which muscle you should be engaging and feel it working. Good form prevents injury and is more effective than rushing.</li>
+                            <li><strong>Check for Coning:</strong> "Coning" is a visible ridge or dome shape that forms down the center of your abdomen during an exercise. If you see this, it indicates too much pressure on your core. Stop the exercise immediately and try a modification or a different movement.</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <section id="nutrition" class="tab-content hidden">
+                <div class="bg-white rounded-xl shadow-md p-6 md:p-8">
+                    <h2 class="text-2xl font-bold text-amber-700 mb-4">Nourish Your Body</h2>
+                    <p class="text-stone-600 mb-6">Proper nutrition is essential for recovery and energy. This section provides general tips and healthy snack ideas to support your fitness journey. Focus on whole foods that make you feel good and provide sustained energy for your workouts and daily activities.</p>
+                    <div class="grid md:grid-cols-2 gap-8">
+                        <div>
+                            <h3 class="text-xl font-semibold text-amber-600 mb-3">General Tips</h3>
+                            <ul class="space-y-3 text-stone-700">
+                                <li class="flex items-start"><span class="text-green-500 mr-2">✓</span><span><strong>Eat Regular Meals:</strong> Aim for 3 balanced meals to keep your energy stable.</span></li>
+                                <li class="flex items-start"><span class="text-green-500 mr-2">✓</span><span><strong>Prioritize Protein:</strong> Protein helps repair muscles. Include sources like chicken, fish, eggs, tofu, or lentils.</span></li>
+                                <li class="flex items-start"><span class="text-green-500 mr-2">✓</span><span><strong>Complex Carbs for Fuel:</strong> Oats, brown rice, and quinoa provide long-lasting energy.</span></li>
+                                <li class="flex items-start"><span class="text-green-500 mr-2">✓</span><span><strong>Don't Skip Meals:</strong> Skipping meals can lead to low energy and overeating later.</span></li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-semibold text-amber-600 mb-3">Healthy Snack Ideas</h3>
+                             <ul class="space-y-3 text-stone-700">
+                                <li class="flex items-start"><span class="text-amber-500 mr-2">●</span><span>Greek yogurt with berries</span></li>
+                                <li class="flex items-start"><span class="text-amber-500 mr-2">●</span><span>Apple slices with peanut butter</span></li>
+                                <li class="flex items-start"><span class="text-amber-500 mr-2">●</span><span>A handful of almonds or walnuts</span></li>
+                                <li class="flex items-start"><span class="text-amber-500 mr-2">●</span><span>Hard-boiled eggs</span></li>
+                                <li class="flex items-start"><span class="text-amber-500 mr-2">●</span><span>Hummus with carrot sticks or bell peppers</span></li>
+                                <li class="flex items-start"><span class="text-amber-500 mr-2">●</span><span>A protein shake or smoothie</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                     <div class="mt-8 pt-8 border-t border-amber-200">
+                        <h3 class="text-xl font-semibold text-amber-600 mb-3">Tips for Eating Out</h3>
+                        <ul class="space-y-3 text-stone-700">
+                            <li class="flex items-start"><span class="text-amber-500 mr-2">●</span><span><strong>Look for "Bowls":</strong> Many restaurants offer rice or quinoa bowls with protein and vegetables. These are often balanced and nutritious.</span></li>
+                            <li class="flex items-start"><span class="text-amber-500 mr-2">●</span><span><strong>Go for Grills:</strong> Choose grilled or baked chicken, fish, or tofu instead of fried options.</span></li>
+                            <li class="flex items-start"><span class="text-amber-500 mr-2">●</span><span><strong>Ask for Substitutions:</strong> Don't be afraid to swap fries for a side salad or steamed vegetables.</span></li>
+                            <li class="flex items-start"><span class="text-amber-500 mr-2">●</span><span><strong>Prioritize Veggies:</strong> Look for a meal that features plenty of colorful vegetables.</span></li>
+                            <li class="flex items-start"><span class="text-amber-500 mr-2">●</span><span><strong>Smart Dressings:</strong> Ask for sauces and dressings on the side so you can control the amount you use.</span></li>
+                            <li class="flex items-start"><span class="text-amber-500 mr-2">●</span><span><strong>Stay Hydrated:</strong> Drink plenty of water throughout the meal to aid digestion and help you feel full.</span></li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <section id="tracker" class="tab-content hidden">
+                <div class="bg-white rounded-xl shadow-md p-6 md:p-8">
+                    <h2 class="text-2xl font-bold text-amber-700 text-center mb-4">Track Your Progress</h2>
+                    <p class="text-stone-600 mb-6 text-center max-w-3xl mx-auto">Visualizing your progress can be a powerful motivator. This chart shows the planned cardio minutes for each day of the program. After you complete a day's workout, click the corresponding button below to mark it as complete and see your progress updated on the chart!</p>
+                    <div class="chart-container">
+                        <canvas id="progressChart"></canvas>
+                    </div>
+                    <div id="log-buttons" class="flex flex-wrap justify-center gap-2 mt-8"></div>
+                </div>
+            </section>
+        </main>
+
+    </div>
+
+    <script>
+        const warmUpRoutine = [
+            { name: "Gentle Walk", detail: "2-3 minutes of walking in place or around the room. Start with a light, easy walk in place or around your space. Lift your knees just slightly and keep your steps soft and controlled. This helps to gently wake up your muscles and increase blood flow." },
+            { name: "Arm Circles", detail: "10 forward, then 10 backward to mobilize the shoulders.Perform small, controlled circles with your arms, gradually increasing the size. Stand tall and rotate your arms forward for 10 reps, feeling the movement in your shoulder joints. Then, reverse the direction and do 10 more reps, focusing on opening your chest." },
+            { name: "Marching in Place", detail: "30-60 seconds, lifting knees to waist height to activate your legs and core. Start by marching slowly and gradually increase your pace, swinging your arms gently. This is a simple cardio warm-up that gets your blood flowing without putting stress on your joints." },
+            { name: "Standing Knee Lifts", detail: "10 reps per leg, lifting one knee toward your chest and alternating. Stand tall and gently lift one knee towards your chest, then lower it with control. Alternate between legs. This helps to activate your hip flexors and core while preparing your legs for movement." },
+            { name: "Ankle Circles", detail: "10 circles in each direction per foot to improve ankle mobility. While seated or standing, lift one foot and gently rotate your ankle in a circle, both clockwise and counter-clockwise. This improves ankle mobility, which is important for balance and stability." }
+        ]
+        const coolDownRoutine = [
+            { name: "Hamstring Stretch", detail: "Lie on your back, bring one knee to your chest, and hold behind the thigh for 20-30 seconds per side." },
+            { name: "Seated Figure-Four", detail: "Sit on the floor, cross one ankle over the opposite knee, and gently press the knee down to stretch the glute. Hold for 20-30 seconds per side." },
+            { name: "Chest Stretch", detail: "Stand in a doorway, place your forearms on the frame, and gently step through to stretch your chest. Hold for 20-30 seconds." }
+        ];
+
+        const workoutData = {
+            week1: {
+                title: "Week 1: Gentle Core Reconnection",
+                days: {
+                    Monday: {
+                        title: "Core & Pelvic Floor",
+                        exercises: [
+                            { name: "Pelvic Tilts", detail: "15 reps", description: "Lie on your back, knees bent, feet flat on the floor. Gently tilt your pelvis up, flattening your lower back against the mat. Slowly release.", muscles: "Deep core (Transverse Abdominis), pelvic floor" },
+                            { name: "Diaphragmatic Breathing", detail: "10 deep breaths", description: "Lie on your back with one hand on your chest and the other on your belly. Inhale slowly through your nose, allowing your belly to rise. Exhale slowly through your mouth.", muscles: "Diaphragm, deep core" },
+                            { name: "Cat-Cow", detail: "10 reps", description: "On all fours, inhale as you drop your belly and lift your head (Cow). Exhale as you round your spine and tuck your chin (Cat).", muscles: "Spinal muscles, abs" },
+                            { name: "Bird-Dog (Modified)", detail: "10 reps per side (arms only)", description: "On all fours, keep your back stable as you extend one arm forward. Focus on not shifting your torso. Repeat with the other arm.", muscles: "Core stabilizers, shoulders" }
+                        ]
+                    },
+                    Tuesday: {
+                        title: "Low-Impact Cardio & Glutes",
+                        exercises: [
+                            { name: "Brisk Walk", detail: "20-30 minutes", description: "Walk at a pace where your breathing quickens but you can still hold a conversation.", muscles: "Cardiovascular system" },
+                            { name: "Glute Bridges", detail: "15 reps", description: "Lie on your back, knees bent. Squeeze your glutes to lift your hips off the floor until your body forms a straight line from shoulders to knees. Lower with control.", muscles: "Glutes, hamstrings" },
+                            { name: "Wall Push-ups", detail: "15 reps", description: "Stand facing a wall, hands shoulder-width apart. Lean in, bending your elbows until your head is close to the wall, then push back up.", muscles: "Chest, shoulders, triceps" }
+                        ]
+                    },
+                    Wednesday: { title: "Active Recovery", exercises: [{ name: "Gentle Stretching or Rest", detail: "Listen to your body.", description: "Take this time for gentle movement or complete rest. Focus on stretches for the hips, back, and shoulders.", muscles: "Rest and recovery" }] },
+                    Thursday: {
+                        title: "Core & Bodyweight Circuit",
+                        exercises: [
+                            { name: "Circuit: 2 Rounds", detail: "60s rest between rounds", description: ""},
+                            { name: "Dead Bug (Modified)", detail: "10 reps per arm", description: "Lie on your back, core engaged. Slowly lower one arm towards the floor while keeping your back flat. Return and repeat on the other side.", muscles: "Deep core stabilizers" },
+                            { name: "Side-Lying Leg Lifts", detail: "15 reps per side", description: "Lie on your side, legs stacked. Lift the top leg straight up towards the ceiling, then lower it with control.", muscles: "Outer glute (gluteus medius)" },
+                            { name: "Squats (Chair-assisted)", detail: "15 reps", description: "Stand in front of a chair. Lower your hips as if you are going to sit, tapping the chair with your glutes before standing back up.", muscles: "Glutes, quadriceps, hamstrings" },
+                            { name: "Standing Marching", detail: "20 reps per leg", description: "Stand tall and lift one knee up high as if marching, then alternate legs. Focus on stability and core engagement.", muscles: "Core, quadriceps" }
+                        ]
+                    },
+                    Friday: {
+                        title: "Core & Cardio",
+                        exercises: [
+                            { name: "Brisk Walk", detail: "30 minutes", description: "Walk at a brisk pace for 30 minutes. Focus on controlled breathing.", muscles: "Cardiovascular system" },
+                            { name: "Forearm Plank (Modified)", detail: "20-30 sec hold, 3 times", description: "Start on all fours, then lower to your forearms. Keep your back straight, head in line with your spine, and hold the position.", muscles: "Core, shoulders" }
+                        ]
+                    },
+                    Saturday: {
+                        title: "Steady State Cardio",
+                        exercises: [ { name: "Gentle Activity", detail: "30-45 min walk, cycling, or dancing", description: "Engage in a low-impact activity like walking or dancing for 30-45 minutes. Find what feels good for your body.", muscles: "Cardiovascular system" } ]
+                    },
+                    Sunday: { title: "REST DAY", exercises: [{ name: "Complete Rest", detail: "Allow your body to recover.", description: "Give your body the rest it needs to recover and rebuild.", muscles: "Rest and recovery" }] }
+                }
+            },
+            week2: {
+                title: "Week 2: Build Stability",
+                days: {
+                    Monday: {
+                        title: "Core & Full Body",
+                        exercises: [
+                            { name: "Circuit: 3 Rounds", detail: "60s rest between rounds", description: ""},
+                            { name: "Bird-Dog", detail: "10 reps per side (opposite arm/leg)", description: "On all fours, extend your right arm and left leg simultaneously, keeping your core stable. Return to center and repeat with the opposite limbs.", muscles: "Core stabilizers, glutes, back" },
+                            { name: "Glute Bridges", detail: "20 reps with hold", description: "Lift your hips into a bridge and hold at the top for a few seconds before lowering. Focus on squeezing your glutes.", muscles: "Glutes, hamstrings" },
+                            { name: "Wall Sits", detail: "30 sec hold, 3 times", description: "Lean your back against a wall and slide down until your knees are bent at a 90-degree angle. Hold this position.", muscles: "Quadriceps, glutes" },
+                            { name: "Standing Marching (High Knees)", detail: "30 reps per leg", description: "Stand tall and lift your knees high, alternating legs at a slightly faster pace than Week 1.", muscles: "Core, hip flexors, quadriceps" }
+                        ]
+                    },
+                    Tuesday: {
+                        title: "Low-Impact Cardio & Core",
+                        exercises: [
+                            { name: "Brisk Walk or Light Jog", detail: "30-40 minutes", description: "Choose a brisk walk or a gentle jog for 30-40 minutes. Pay attention to how your body feels and switch back to walking if needed.", muscles: "Cardiovascular system" },
+                            { name: "Forearm Plank", detail: "45-60 sec hold, 3 times", description: "Hold a forearm plank on your toes, keeping your back straight and core engaged. If this is too much, return to the modified version on your knees.", muscles: "Core, shoulders, quads" },
+                            { name: "Leg Raises (Modified)", detail: "15 reps per leg", description: "Lie on your back with hands under your lower back for support. Slowly lower one leg at a time towards the floor and raise it back up.", muscles: "Lower abs, hip flexors" }
+                        ]
+                    },
+                    Wednesday: { title: "Active Recovery", exercises: [{ name: "Gentle Yoga or Stretching", detail: "30 minutes.", description: "Follow a gentle yoga flow or stretch to improve flexibility and mobility. Focus on deep breathing.", muscles: "Rest and recovery" }] },
+                    Thursday: {
+                        title: "Upper Body & Core Strength",
+                        exercises: [
+                            { name: "Circuit: 3 Rounds", detail: "60s rest between rounds", description: ""},
+                            { name: "Inclined Push-ups", detail: "12 reps (on counter)", description: "Use a counter or a bench. Place your hands on the elevated surface and perform push-ups with a slight incline to reduce the resistance.", muscles: "Chest, shoulders, triceps" },
+                            { name: "Seated Overhead Press", detail: "15 reps (light weights)", description: "Sit in a chair and hold a light weight in each hand. Press the weights up over your head with control.", muscles: "Shoulders, triceps" },
+                            { name: "Clamshells", detail: "15 reps per side", description: "Lie on your side with knees bent. Keeping your feet together, open your top knee towards the ceiling, then slowly lower it.", muscles: "Outer glute (gluteus medius)" },
+                            { name: "Russian Twists (Modified)", detail: "20 reps", description: "Sit with your feet on the floor and lean back slightly. Gently twist your torso from side to side, keeping your core engaged.", muscles: "Obliques, core" }
+                        ]
+                    },
+                    Friday: {
+                        title: "Low-Impact Cardio & Core",
+                        exercises: [
+                            { name: "30-Minute Cardio", detail: "Light cycling, elliptical, or walk", description: "Engage in 30 minutes of low-impact cardio like cycling, using an elliptical, or taking a brisk walk.", muscles: "Cardiovascular system" },
+                            { name: "Plank with Shoulder Taps", detail: "20 reps (on knees or toes)", description: "From a plank position on your knees or toes, gently tap the opposite shoulder with one hand, keeping your hips as still as possible.", muscles: "Core, shoulders" }
+                        ]
+                    },
+                    Saturday: {
+                        title: "Steady State Cardio",
+                        exercises: [ { name: "Longer Activity", detail: "45-60 min walk or light jog", description: "Engage in a longer cardio session. A 45-60 minute walk or light jog is a great option.", muscles: "Cardiovascular system" } ]
+                    },
+                    Sunday: { title: "REST DAY", exercises: [{ name: "You've earned it!", detail: "Completely rest your body.", description: "Take the day off to rest and let your body recover from the week's workouts.", muscles: "Rest and recovery" }] }
+                }
+            }
+        };
+
+        const navTabs = document.querySelectorAll('.nav-tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const week1Btn = document.getElementById('week1-btn');
+        const week2Btn = document.getElementById('week2-btn');
+        const dailyButtonsContainer = document.getElementById('daily-buttons');
+        const workoutDetailsContainer = document.getElementById('workout-details');
+        
+        let activeWeek = 'week1';
+        let activeDay = 'Monday';
+        let progressChart;
+
+        function setActiveTab(tabId) {
+            navTabs.forEach(tab => {
+                if (tab.dataset.tab === tabId) {
+                    tab.classList.add('tab-active');
+                } else {
+                    tab.classList.remove('tab-active');
+                }
+            });
+
+            tabContents.forEach(content => {
+                if (content.id === tabId) {
+                    content.classList.remove('hidden');
+                } else {
+                    content.classList.add('hidden');
+                }
+            });
+             if (tabId === 'tracker' && !progressChart) {
+                renderChart();
+            }
+        }
+
+        function renderDayButtons() {
+            dailyButtonsContainer.innerHTML = '';
+            const days = Object.keys(workoutData[activeWeek].days);
+            days.forEach(day => {
+                const button = document.createElement('button');
+                button.innerText = day.substring(0, 3);
+                button.dataset.day = day;
+                button.className = `day-button p-2 w-12 rounded-full font-semibold transition-colors ${day === activeDay ? 'day-button-active' : 'bg-amber-100 text-stone-600'}`;
+                button.addEventListener('click', () => {
+                    activeDay = day;
+                    renderDayButtons();
+                    renderWorkoutDetails();
+                });
+                dailyButtonsContainer.appendChild(button);
+            });
+        }
+        
+        function renderWorkoutDetails() {
+            const workout = workoutData[activeWeek].days[activeDay];
+            let html = `
+                <h3 class="text-xl font-bold text-center text-amber-600 mb-4">${activeDay}: ${workout.title}</h3>
+                
+                <div class="mb-8 p-6 rounded-lg border border-amber-200">
+                    <h4 class="font-bold text-lg text-amber-600 mb-2">Warm-up Routine (5 minutes)</h4>
+                    <ul class="list-disc list-inside space-y-2 text-stone-700">
+                        ${warmUpRoutine.map(item => `<li><strong>${item.name}:</strong> ${item.detail}</li>`).join('')}
+                    </ul>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            `;
+            workout.exercises.forEach(ex => {
+                if (ex.name.includes("Circuit")) {
+                     html += `
+                        <div class="bg-amber-50 p-4 rounded-lg border border-amber-200 col-span-1 md:col-span-2">
+                            <p class="font-semibold text-stone-800">${ex.name}</p>
+                            <p class="text-stone-600 text-sm">${ex.detail}</p>
+                        </div>
+                    `;
+                } else {
+                    html += `
+                        <div class="bg-amber-50 p-4 rounded-lg border border-amber-200 flex flex-col items-center text-center">
+                            <p class="font-semibold text-stone-800">${ex.name}</p>
+                            <p class="text-stone-600 text-sm">${ex.detail}</p>
+                            <p class="text-stone-700 text-sm mt-1"><strong>Muscles:</strong> ${ex.muscles}</p>
+                            <p class="mt-2 text-stone-700 text-sm leading-relaxed">${ex.description}</p>
+                        </div>
+                    `;
+                }
+            });
+            html += `
+                </div>
+                 <div class="mt-8 pt-8 p-6 rounded-lg border border-amber-200">
+                    <h4 class="font-bold text-lg text-amber-600 mb-2">Cool-down Routine (5 minutes)</h4>
+                    <ul class="list-disc list-inside space-y-2 text-stone-700">
+                        ${coolDownRoutine.map(item => `<li><strong>${item.name}:</strong> ${item.detail}</li>`).join('')}
+                    </ul>
+                </div>
+            `;
+            workoutDetailsContainer.innerHTML = html;
+        }
+
+        week1Btn.addEventListener('click', () => {
+            activeWeek = 'week1';
+            activeDay = 'Monday';
+            week1Btn.classList.add('bg-amber-500', 'text-white');
+            week1Btn.classList.remove('bg-amber-100', 'text-stone-600');
+            week2Btn.classList.add('bg-amber-100', 'text-stone-600');
+            week2Btn.classList.remove('bg-amber-500', 'text-white');
+            renderDayButtons();
+            renderWorkoutDetails();
+        });
+
+        week2Btn.addEventListener('click', () => {
+            activeWeek = 'week2';
+            activeDay = 'Monday';
+            week2Btn.classList.add('bg-amber-500', 'text-white');
+            week2Btn.classList.remove('bg-amber-100', 'text-stone-600');
+            week1Btn.classList.add('bg-amber-100', 'text-stone-600');
+            week1Btn.classList.remove('bg-amber-500', 'text-white');
+            renderDayButtons();
+            renderWorkoutDetails();
+        });
+
+        navTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                setActiveTab(tab.dataset.tab);
+            });
+        });
+
+        function renderChart() {
+            const ctx = document.getElementById('progressChart').getContext('2d');
+            const cardioData = {
+                week1: [0, 25, 0, 0, 30, 40, 0],
+                week2: [0, 35, 0, 0, 30, 50, 0]
+            };
+
+            const labels = [
+                'W1 Mon', 'W1 Tue', 'W1 Wed', 'W1 Thu', 'W1 Fri', 'W1 Sat', 'W1 Sun',
+                'W2 Mon', 'W2 Tue', 'W2 Wed', 'W2 Thu', 'W2 Fri', 'W2 Sat', 'W2 Sun'
+            ];
+            
+            const data = [...cardioData.week1, ...cardioData.week2];
+            const logButtonsContainer = document.getElementById('log-buttons');
+            logButtonsContainer.innerHTML = '';
+            
+            const defaultColor = 'rgba(245, 158, 11, 0.6)';
+            const completedColor = 'rgba(34, 197, 94, 0.6)';
+            
+            const backgroundColors = data.map(() => defaultColor);
+
+            data.forEach((_, index) => {
+                const dayNum = index + 1;
+                const button = document.createElement('button');
+                button.innerText = `Log Day ${dayNum}`;
+                button.className = 'log-button px-3 py-1 text-sm rounded-full bg-stone-200 text-stone-700 hover:bg-stone-300';
+                button.addEventListener('click', () => {
+                    backgroundColors[index] = completedColor;
+                    progressChart.data.datasets[0].backgroundColor = backgroundColors;
+                    progressChart.update();
+                    button.classList.add('bg-green-500', 'text-white');
+                    button.disabled = true;
+                });
+                logButtonsContainer.appendChild(button);
+            });
+
+            progressChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Planned Cardio Minutes',
+                        data: data,
+                        backgroundColor: backgroundColors,
+                        borderColor: 'rgba(245, 158, 11, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Minutes of Activity'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                autoSkip: false,
+                                maxRotation: 45,
+                                minRotation: 45
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                             callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += context.parsed.y + ' min';
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            setActiveTab('welcome');
+            renderDayButtons();
+            renderWorkoutDetails();
+        });
+
+    </script>
+</body>
+</html>
