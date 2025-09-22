@@ -50,27 +50,12 @@
         </header>
 
         <nav class="flex justify-center border-b-2 border-amber-200 mb-8">
-            <button data-tab="welcome" class="nav-tab text-lg font-medium p-4 border-b-4 border-transparent hover:text-amber-600 transition-colors">Welcome</button>
             <button data-tab="plan" class="nav-tab text-lg font-medium p-4 border-b-4 border-transparent hover:text-amber-600 transition-colors">Workout Plan</button>
             <button data-tab="nutrition" class="nav-tab text-lg font-medium p-4 border-b-4 border-transparent hover:text-amber-600 transition-colors">Nutrition Guide</button>
             <button data-tab="tracker" class="nav-tab text-lg font-medium p-4 border-b-4 border-transparent hover:text-amber-600 transition-colors">Progress Tracker</button>
         </nav>
 
         <main id="main-content">
-            <section id="welcome" class="tab-content">
-                <div class="bg-white rounded-xl shadow-md p-6 md:p-8">
-                    <h2 class="text-2xl font-bold text-amber-700 mb-4">Welcome to Your Recovery Journey</h2>
-                     <p class="text-stone-600 mb-6">This application provides a structured, gentle plan to help you reconnect with your core and rebuild strength after childbirth. The program is divided into two weeks, starting with foundational movements and gradually increasing in stability challenges. Navigate using the tabs above to explore the workout plan, find nutrition tips, and track your progress. Remember to be patient and kind to yourself throughout this process.</p>
-                    <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg" role="alert">
-                        <h3 class="font-bold text-xl">IMPORTANT: Please Read Before Starting</h3>
-                        <ul class="list-disc list-inside mt-2 space-y-2">
-                            <li><strong>Consult a Professional:</strong> This is a general guide. It is crucial to consult with your doctor or a physical therapist before starting. They can assess your needs and check for conditions like diastasis recti.</li>
-                            <li><strong>Listen to Your Body:</strong> If any exercise causes pain, discomfort, or "coning" in your abdominal area, stop immediately. Rest is a key part of recovery.</li>
-                            <li><strong>Breathe Correctly:</strong> Focus on your breath. Exhale on exertion (the hardest part of the movement) to protect your core and pelvic floor.</li>
-                        </ul>
-                    </div>
-                </div>
-            </section>
 
             <section id="plan" class="tab-content hidden">
                  <div class="bg-white rounded-xl shadow-md p-6 md:p-8">
@@ -476,7 +461,7 @@
         }
         
         document.addEventListener('DOMContentLoaded', () => {
-            setActiveTab('welcome');
+            setActiveTab('plan');
             renderDayButtons();
             renderWorkoutDetails();
         });
